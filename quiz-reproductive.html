@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>แบบฝึกหัดระบบสืบพันธุ์ | วิทย์พลังสิบ ม.2</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0f1e;
+    --bg2: #111827;
+    --card: rgba(255,255,255,0.04);
+    --card-border: rgba(255,255,255,0.09);
+    --blue: #3b82f6;
+    --indigo: #6366f1;
+    --purple: #8b5cf6;
+    --green: #22c55e;
+    --emerald: #10b981;
+    --pink: #ec4899;
+    --red: #ef4444;
+    --amber: #f59e0b;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --dim: #475569;
+  }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 32px 16px 60px;
+    background-image:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(59,130,246,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 90%, rgba(139,92,246,0.08) 0%, transparent 60%);
+  }
+
+  .container { max-width: 820px; margin: 0 auto; }
+
+  /* ===== HEADER ===== */
+  .header { text-align: center; margin-bottom: 36px; }
+  .badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--blue), var(--purple));
+    border-radius: 20px; padding: 5px 18px;
+    font-size: 12px; font-weight: 700; letter-spacing: 2px;
+    color: white; margin-bottom: 14px;
+  }
+  .header h1 {
+    font-size: clamp(26px, 5vw, 40px); font-weight: 800; line-height: 1.15;
+    background: linear-gradient(135deg, #60a5fa, #a78bfa 50%, #34d399);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+  .header p { color: var(--muted); font-size: 15px; }
+
+  /* ===== SCORE BANNER ===== */
+  #score-banner {
+    display: none;
+    border-radius: 20px; padding: 28px 32px;
+    margin-bottom: 28px; text-align: center;
+    backdrop-filter: blur(10px);
+    animation: fadeSlide .5s ease;
+  }
+  #score-banner.show { display: block; }
+  @keyframes fadeSlide {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .score-num { font-size: 56px; font-weight: 800; line-height: 1; }
+  .score-msg { font-size: 22px; font-weight: 700; margin-top: 8px; }
+  .score-sub { font-size: 14px; color: var(--muted); margin-top: 6px; }
+  .score-bar-wrap { background: rgba(255,255,255,0.08); border-radius: 99px; height: 10px; margin: 16px 0 0; overflow: hidden; }
+  .score-bar { height: 100%; border-radius: 99px; transition: width 1s cubic-bezier(.4,0,.2,1); }
+
+  /* ===== TABS ===== */
+  .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+  .tab-btn {
+    flex: 1; padding: 13px 8px; border-radius: 14px; border: 1.5px solid var(--card-border);
+    background: var(--card); color: var(--muted);
+    font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: all .25s;
+  }
+  .tab-btn.active {
+    background: linear-gradient(135deg, var(--blue), var(--indigo));
+    color: white; border-color: transparent;
+    box-shadow: 0 4px 18px rgba(99,102,241,.4);
+  }
+
+  .section { display: none; }
+  .section.active { display: block; animation: fadeIn .3s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ===== SECTION TITLE ===== */
+  .section-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+
+  /* ===== QUESTION CARD ===== */
+  .q-card {
+    background: var(--card); border: 1.5px solid var(--card-border);
+    border-radius: 18px; padding: 22px 24px; margin-bottom: 16px;
+    transition: border-color .3s, background .3s;
+  }
+  .q-card.correct { background: rgba(34,197,94,0.07); border-color: rgba(34,197,94,0.35); }
+  .q-card.wrong   { background: rgba(239,68,68,0.07);  border-color: rgba(239,68,68,0.35);  }
+
+  .q-header { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 16px; }
+  .q-num {
+    background: linear-gradient(135deg, var(--blue), var(--indigo));
+    border-radius: 8px; padding: 3px 11px; font-size: 13px; font-weight: 700;
+    flex-shrink: 0; color: white; line-height: 1.6;
+  }
+  .q-num.purple { background: linear-gradient(135deg, var(--purple), #a855f7); }
+  .q-num.green  { background: linear-gradient(135deg, var(--emerald), #34d399); }
+  .q-text { font-size: 16px; font-weight: 600; line-height: 1.5; }
+
+  /* ===== OPTIONS GRID ===== */
+  .options { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  @media(max-width: 520px) { .options { grid-template-columns: 1fr; } }
+
+  .opt-btn {
+    background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 11px; padding: 11px 14px;
+    text-align: left; cursor: pointer;
+    font-family: 'Sarabun', sans-serif; font-size: 14px; font-weight: 500; color: #cbd5e1;
+    transition: all .2s; display: flex; align-items: center; gap: 8px;
+  }
+  .opt-btn:hover:not(:disabled) { border-color: var(--indigo); background: rgba(99,102,241,0.12); color: white; }
+  .opt-btn.selected { background: rgba(99,102,241,0.2); border-color: var(--indigo); color: white; }
+  .opt-btn.correct-ans { background: rgba(34,197,94,0.15); border-color: var(--green); color: #86efac; }
+  .opt-btn.wrong-ans   { background: rgba(239,68,68,0.15);  border-color: var(--red);   color: #fca5a5; }
+  .opt-btn:disabled { cursor: default; }
+  .opt-letter { font-weight: 700; opacity: .6; }
+
+  /* ===== TRUE/FALSE ===== */
+  .tf-options { display: flex; gap: 12px; }
+  .tf-btn {
+    flex: 1; background: rgba(255,255,255,0.05); border: 1.5px solid rgba(255,255,255,0.12);
+    border-radius: 13px; padding: 15px;
+    cursor: pointer; font-family: 'Sarabun', sans-serif; font-size: 18px; font-weight: 700; color: #cbd5e1;
+    transition: all .2s;
+  }
+  .tf-btn:hover:not(:disabled) { border-color: var(--indigo); background: rgba(99,102,241,0.12); color: white; }
+  .tf-btn.selected { background: rgba(99,102,241,0.2); border-color: var(--indigo); color: white; }
+  .tf-btn.correct-ans { background: rgba(34,197,94,0.15); border-color: var(--green); color: #86efac; }
+  .tf-btn.wrong-ans   { background: rgba(239,68,68,0.15);  border-color: var(--red);   color: #fca5a5; }
+  .tf-btn:disabled { cursor: default; }
+
+  /* ===== EXPLANATION ===== */
+  .explanation {
+    display: none; margin-top: 14px; padding: 11px 15px;
+    background: rgba(16,185,129,0.09); border-radius: 11px;
+    border-left: 3px solid var(--emerald); font-size: 13.5px; color: #6ee7b7; line-height: 1.6;
+  }
+  .explanation.show { display: block; animation: fadeIn .3s; }
+
+  /* ===== FILL BLANKS ===== */
+  .fill-note { color: var(--dim); font-size: 13px; margin-bottom: 20px; }
+  .fill-input {
+    width: 100%; background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.14);
+    border-radius: 11px; padding: 12px 16px;
+    font-family: 'Sarabun', sans-serif; font-size: 15px; color: var(--text);
+    outline: none; transition: border-color .2s;
+  }
+  .fill-input:focus { border-color: var(--emerald); }
+  .fill-input:disabled { opacity: .7; cursor: default; }
+  .fill-answer {
+    display: none; margin-top: 12px; padding: 11px 15px;
+    background: rgba(52,211,153,0.09); border-radius: 11px;
+    border-left: 3px solid #34d399; font-size: 13.5px; color: #6ee7b7;
+  }
+  .fill-answer.show { display: block; animation: fadeIn .3s; }
+  .fill-answer strong { color: #34d399; }
+
+  /* ===== DIAGRAM ===== */
+  .diagram {
+    background: rgba(255,255,255,0.025); border: 1px solid rgba(99,102,241,0.3);
+    border-radius: 20px; padding: 24px; margin: 24px 0 0;
+  }
+  .diagram h3 { color: var(--purple); font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .diagram-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width: 520px) { .diagram-grid { grid-template-columns: 1fr; } }
+  .diagram-col { border-radius: 13px; padding: 16px; }
+  .diagram-col.male   { background: rgba(59,130,246,0.07);  border: 1px solid rgba(59,130,246,0.2);  }
+  .diagram-col.female { background: rgba(236,72,153,0.07);  border: 1px solid rgba(236,72,153,0.2);  }
+  .diagram-col h4 { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+  .diagram-col.male h4   { color: var(--blue); }
+  .diagram-col.female h4 { color: var(--pink); }
+  .diagram-row { display: flex; gap: 7px; font-size: 13px; color: var(--muted); margin-bottom: 7px; line-height: 1.4; }
+  .diagram-row span:first-child { flex-shrink: 0; }
+  .diagram-col.male   .diagram-row span:first-child { color: var(--blue); }
+  .diagram-col.female .diagram-row span:first-child { color: var(--pink); }
+
+  /* ===== BUTTONS ===== */
+  .btn-row { display: flex; justify-content: center; gap: 12px; margin-top: 28px; }
+  .btn-submit, .btn-reset {
+    border: none; border-radius: 14px; padding: 16px 52px;
+    font-family: 'Sarabun', sans-serif; font-size: 17px; font-weight: 700; color: white;
+    cursor: pointer; transition: transform .15s, box-shadow .15s;
+  }
+  .btn-submit { background: linear-gradient(135deg, var(--blue), var(--indigo)); box-shadow: 0 6px 24px rgba(99,102,241,.45); }
+  .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(99,102,241,.55); }
+  .btn-reset  { background: linear-gradient(135deg, var(--emerald), #059669); box-shadow: 0 6px 24px rgba(16,185,129,.4); display: none; }
+  .btn-reset:hover { transform: translateY(-2px); }
+
+  /* ===== FOOTER ===== */
+  .footer { text-align: center; color: #1e293b; font-size: 12px; margin-top: 24px; }
+
+  /* ===== PROGRESS ===== */
+  .progress-wrap {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255,255,255,0.04); border-radius: 12px;
+    padding: 10px 16px; margin-bottom: 20px; font-size: 13px; color: var(--muted);
+  }
+  #progress-bar-outer { flex: 1; background: rgba(255,255,255,0.08); border-radius: 99px; height: 6px; }
+  #progress-bar { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--blue), var(--indigo)); width: 0%; transition: width .3s; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">วิทย์พลังสิบ ม.2</div>
+    <h1>แบบฝึกหัดระบบสืบพันธุ์</h1>
+    <p>The Reproductive System &nbsp;·&nbsp; 14 ข้อ &nbsp;·&nbsp; ชีววิทยา</p>
+  </div>
+
+  <!-- Score Banner -->
+  <div id="score-banner">
+    <div class="score-num" id="score-num"></div>
+    <div class="score-msg" id="score-msg"></div>
+    <div class="score-sub" id="score-sub"></div>
+    <div class="score-bar-wrap"><div class="score-bar" id="score-bar"></div></div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <span id="progress-text">ตอบแล้ว 0 / 10 ข้อ</span>
+    <div id="progress-bar-outer"><div id="progress-bar"></div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('mc', this)">🔵 ปรนัย (8)</button>
+    <button class="tab-btn" onclick="switchTab('tf', this)">✅ ถูก/ผิด (2)</button>
+    <button class="tab-btn" onclick="switchTab('fill', this)">✏️ เติมคำ (4)</button>
+  </div>
+
+  <!-- ===== SECTION 1: Multiple Choice ===== -->
+  <div id="sec-mc" class="section active">
+    <div class="section-title" style="color:#60a5fa">ส่วนที่ 1: เลือกคำตอบที่ถูกต้อง</div>
+
+    <!-- Q1 -->
+    <div class="q-card" id="qcard-1">
+      <div class="q-header">
+        <span class="q-num">1</span>
+        <span class="q-text">อวัยวะใดในระบบสืบพันธุ์เพศชายทำหน้าที่ผลิตอสุจิ?</span>
+      </div>
+      <div class="options">
+        <button class="opt-btn" onclick="selectMC(1,0,1)"><span class="opt-letter">A.</span>ท่อนำอสุจิ</button>
+        <button class="opt-btn" onclick="selectMC(1,1,1)"><span class="opt-letter">B.</span>อัณฑะ</button>
+        <button class="opt-btn" onclick="selectMC(1,2,1)"><span class="opt-letter">C.</span>ต่อมลูกหมาก</button>
+        <button class="opt-btn" onclick="selectMC(1,3,1)"><span class="opt-letter">D.</span>องคชาต</button>
+      </div>
+      <div class="explanation" id="exp-1">💡 <strong>อัณฑะ (Testis)</strong> ทำหน้าที่ผลิตอสุจิ (Sperm) และฮอร์โมนเพศชาย (Testosterone) ซึ่งอยู่ภายในถุงอัณฑะที่อยู่นอกร่างกาย เพื่อให้อุณหภูมิต่ำกว่าร่างกาย 2–3°C เหมาะสมต่อการผลิตอสุจิ</div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="q-card" id="qcard-2">
+      <div class="q-header">
+        <span class="q-num">2</span>
+        <span class="q-text">ไข่ของเพศหญิงถูกผลิตและเก็บไว้ที่อวัยวะใด?</span>
+      </div>
+      <div class="options">
+        <button class="opt-btn" onclick="selectMC(2,0,2)"><span class="opt-letter">A.</span>มดลูก</button>
+        <button class="opt-btn" onclick="selectMC(2,1,2)"><span class="opt-letter">B.</span>ท่อนำไข่</button>
+        <button class="opt-btn" onclick="selectMC(2,2,2)"><span class="opt-letter">C.</span>รังไข่</button>
+        <button class="opt-btn" onclick="selectMC(2,3,2)"><span class="opt-letter">D.</span>ช่องคลอด</button>
+      </div>
+      <div class="explanation" id="exp-2">💡 <strong>รังไข่ (Ovary)</strong> ทำหน้าที่ผลิตไข่ (Ovum) และฮอร์โมนเพศหญิง ได้แก่ Estrogen และ Progesterone มีรังไข่ 2 ข้าง แต่ละเดือนตกไข่สลับข้างกัน</div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="q-card" id="qcard-3">
+      <div class="q-header">
+        <span class="q-num">3</span>
+        <span class="q-text">การปฏิสนธิ (Fertilization) เกิดขึ้นที่ใด?</span>
+      </div>
+      <div class="options">
+        <button class="opt-btn" onclick="selectMC(3,0,2)"><span class="opt-letter">A.</span>มดลูก</button>
+        <button class="opt-btn" onclick="selectMC(3,1,2)"><span class="opt-letter">B.</span>รังไข่</button>
+        <button class="opt-btn" onclick="selectMC(3,2,2)"><span class="opt-letter">C.</span>ท่อนำไข่</button>
+        <button class="opt-btn" onclick="selectMC(3,3,2)"><span class="opt-letter">D.</span>ปากมดลูก</button>
+      </div>
+      <div class="explanation" id="exp-3">💡 การปฏิสนธิเกิดขึ้นที่ <strong>ท่อนำไข่ (Fallopian Tube)</strong> บริเวณส่วนต้น โดยอสุจิว่ายทวนเข้าไปผสมกับไข่ที่นั่น ก่อนที่ไซโกตจะเคลื่อนตัวมาฝังในผนังมดลูก</div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="q-card" id="qcard-4">
+      <div class="q-header">
+        <span class="q-num">4</span>
+        <span class="q-text">ไซโกต (Zygote) คืออะไร?</span>
+      </div>
+      <div class="options">
+        <button class="opt-btn" onclick="selectMC(4,0,1)"><span class="opt-letter">A.</span>เซลล์ไข่ที่สุกแล้ว</button>
+        <button class="opt-btn" onclick="selectMC(4,1,1)"><span class="opt-letter">B.</span>เซลล์ที่เกิดจากการรวมกันของอสุจิและไข่</button>
+        <button class="opt-btn" onclick="selectMC(4,2,1)"><span class="opt-letter">C.</span>เซลล์อสุจิที่โตเต็มวัย</button>
+        <button class="opt-btn" onclick="selectMC(4,3,1)"><span class="opt-letter">D.</span>ตัวอ่อนที่ฝังในมดลูกแล้ว</button>
+      </div>
+      <div class="explanation" id="exp-4">💡 <strong>ไซโกต (Zygote)</strong> คือเซลล์แรกที่เกิดจากการปฏิสนธิ มีโครโมโซม 46 แท่ง (2n) ได้จากไข่ 23 แท่ง + อสุจิ 23 แท่ง เป็นจุดเริ่มต้นของสิ่งมีชีวิตใหม่</div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="q-card" id="qcard-5">
+      <div class="q-header">
+        <span class="q-num">5</span>
+        <span class="q-text">รอบประจำเดือนโดยเฉลี่ยมีกี่วัน?</span>
+      </div>
+      <div class="options">
+        <button class="opt-btn" onclick="selectMC(5,0,2)"><span class="opt-letter">A.</span>14 วัน</button>
+        <button class="opt-btn" onclick="selectMC(5,1,2)"><span class="opt-letter">B.</span>21 วัน</button>
+        <button class="opt-btn" onclick="selectMC(5,2,2)"><span class="opt-letter">C.</span>28 วัน</button>
+        <button class="opt-btn" onclick="selectMC(5,3,2)"><span class="opt-letter">D.</span>35 วัน</button>
+      </div>
+      <div class="explanation" id="exp-5">💡 รอบประจำเดือนโดยเฉลี่ยอยู่ที่ <strong>28 วัน</strong> แต่อาจแตกต่างกันในแต่ละบุคคล (21–35 วัน) ประกอบด้วย 4 ระยะ: Menstrual → Follicular → Ovulation → Luteal</div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="q-card" id="qcard-6">
+      <div class="q-header">
+        <span class="q-num">6</span>
+        <span class="q-text">ฮอร์โมนใดกระตุ้นให้เกิดการตกไข่?</span>
+      </div>
+      <div class="options">
+        <button class="opt-btn" onclick="selectMC(6,0,2)"><span class="opt-letter">A.</span>Progesterone</button>
+        <button class="opt-btn" onclick="selectMC(6,1,2)"><span class="opt-letter">B.</span>Estrogen</button>
+        <button class="opt-btn" onclick="selectMC(6,2,2)"><span class="opt-letter">C.</span>LH (Luteinizing Hormone)</button>
+        <button class="opt-btn" onclick="selectMC(6,3,2)"><span class="opt-letter">D.</span>FSH (Follicle-Stimulating Hormone)</button>
+      </div>
+      <div class="explanation" id="exp-6">💡 <strong>LH (Luteinizing Hormone)</strong> หรือฮอร์โมนลูทีไนซิง จะพุ่งสูงขึ้นอย่างรวดเร็วก่อนการตกไข่ 24–36 ชั่วโมง กระตุ้นให้ฟอลลิเคิลแตกและปล่อยไข่ออกมา</div>
+    </div>
+
+    <!-- Q7 -->
+    <div class="q-card" id="qcard-7">
+      <div class="q-header">
+        <span class="q-num">7</span>
+        <span class="q-text">ระยะตั้งครรภ์ของมนุษย์โดยเฉลี่ยกี่สัปดาห์?</span>
+      </div>
+      <div class="options">
+        <button class="opt-btn" onclick="selectMC(7,0,2)"><span class="opt-letter">A.</span>32 สัปดาห์</button>
+        <button class="opt-btn" onclick="selectMC(7,1,2)"><span class="opt-letter">B.</span>36 สัปดาห์</button>
+        <button class="opt-btn" onclick="selectMC(7,2,2)"><span class="opt-letter">C.</span>40 สัปดาห์</button>
+        <button class="opt-btn" onclick="selectMC(7,3,2)"><span class="opt-letter">D.</span>44 สัปดาห์</button>
+      </div>
+      <div class="explanation" id="exp-7">💡 ระยะตั้งครรภ์ปกติของมนุษย์คือประมาณ <strong>40 สัปดาห์</strong> (≈ 9 เดือน 10 วัน) แบ่งเป็น 3 ไตรมาส แต่ละไตรมาสมีพัฒนาการของทารกที่แตกต่างกัน</div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="q-card" id="qcard-8">
+      <div class="q-header">
+        <span class="q-num">8</span>
+        <span class="q-text">อสุจิมีโครโมโซมเพศกี่ชนิด?</span>
+      </div>
+      <div class="options">
+        <button class="opt-btn" onclick="selectMC(8,0,2)"><span class="opt-letter">A.</span>มีแต่ X เท่านั้น</button>
+        <button class="opt-btn" onclick="selectMC(8,1,2)"><span class="opt-letter">B.</span>มีแต่ Y เท่านั้น</button>
+        <button class="opt-btn" onclick="selectMC(8,2,2)"><span class="opt-letter">C.</span>มีทั้ง X และ Y อย่างละครึ่ง</button>
+        <button class="opt-btn" onclick="selectMC(8,3,2)"><span class="opt-letter">D.</span>มีทั้ง XX และ XY</button>
+      </div>
+      <div class="explanation" id="exp-8">💡 อสุจิมีโครโมโซมเพศ <strong>2 ชนิด</strong> คือ X และ Y อย่างละ 50% ส่วนไข่มีแต่ X ดังนั้นเพศของลูกขึ้นอยู่กับชนิดของอสุจิที่เข้าผสม: X+X = หญิง, X+Y = ชาย</div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 2: True/False ===== -->
+  <div id="sec-tf" class="section">
+    <div class="section-title" style="color:#a78bfa">ส่วนที่ 2: ถูกหรือผิด</div>
+
+    <div class="q-card" id="qcard-9">
+      <div class="q-header">
+        <span class="q-num purple">1</span>
+        <span class="q-text">รกทำหน้าที่แลกเปลี่ยนสารอาหารและก๊าซระหว่างแม่กับทารก</span>
+      </div>
+      <div class="tf-options">
+        <button class="tf-btn" onclick="selectTF(9,'true',true)">✅ ถูก</button>
+        <button class="tf-btn" onclick="selectTF(9,'false',true)">❌ ผิด</button>
+      </div>
+      <div class="explanation" id="exp-9">💡 <strong>ถูกต้อง!</strong> รก (Placenta) เชื่อมต่อระหว่างแม่กับทารกผ่านสายสะดือ ทำหน้าที่ส่งออกซิเจนและสารอาหารจากแม่ไปยังทารก และนำคาร์บอนไดออกไซด์กับของเสียกลับมาที่แม่</div>
+    </div>
+
+    <div class="q-card" id="qcard-10">
+      <div class="q-header">
+        <span class="q-num purple">2</span>
+        <span class="q-text">การแบ่งเซลล์แบบไมโอซิส (Meiosis) ใช้ในการสร้างเซลล์สืบพันธุ์</span>
+      </div>
+      <div class="tf-options">
+        <button class="tf-btn" onclick="selectTF(10,'true',true)">✅ ถูก</button>
+        <button class="tf-btn" onclick="selectTF(10,'false',true)">❌ ผิด</button>
+      </div>
+      <div class="explanation" id="exp-10">💡 <strong>ถูกต้อง!</strong> ไมโอซิส (Meiosis) เป็นการแบ่งเซลล์พิเศษที่ทำให้จำนวนโครโมโซมลดลงครึ่งหนึ่ง จาก 46 → 23 แท่ง เพื่อสร้างเซลล์สืบพันธุ์ (Gamete) ได้แก่ อสุจิและไข่</div>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 3: Fill in the Blank ===== -->
+  <div id="sec-fill" class="section">
+    <div class="section-title" style="color:#34d399">ส่วนที่ 3: เติมคำในช่องว่าง</div>
+    <p class="fill-note">* พิมพ์คำตอบของคุณ แล้วกด "ส่งคำตอบ" เพื่อดูเฉลย</p>
+
+    <div class="q-card" id="qcard-f1">
+      <div class="q-header">
+        <span class="q-num green">1</span>
+        <span class="q-text">อวัยวะที่ทารกเจริญเติบโตระหว่างตั้งครรภ์คือ ___</span>
+      </div>
+      <input class="fill-input" id="fill-1" type="text" placeholder="พิมพ์คำตอบ...">
+      <div class="fill-answer" id="fill-ans-1">✅ เฉลย: <strong>มดลูก (Uterus)</strong> — มดลูกเป็นอวัยวะกล้ามเนื้อรูปลูกแพร์ ทารกเจริญเติบโตในโพรงมดลูกตลอด 40 สัปดาห์</div>
+    </div>
+
+    <div class="q-card" id="qcard-f2">
+      <div class="q-header">
+        <span class="q-num green">2</span>
+        <span class="q-text">เซลล์สืบพันธุ์เพศหญิงเรียกว่า ___ มีโครโมโซม ___ แท่ง</span>
+      </div>
+      <input class="fill-input" id="fill-2" type="text" placeholder="พิมพ์คำตอบ...">
+      <div class="fill-answer" id="fill-ans-2">✅ เฉลย: <strong>ไข่ (Ovum) / 23 แท่ง</strong> — ไข่เป็น haploid (n) มีโครโมโซม 23 แท่ง รวมกับอสุจิ 23 แท่ง = ไซโกต 46 แท่ง</div>
+    </div>
+
+    <div class="q-card" id="qcard-f3">
+      <div class="q-header">
+        <span class="q-num green">3</span>
+        <span class="q-text">ฮอร์โมนเพศชายที่สำคัญที่สุด ผลิตจากอัณฑะ ชื่อว่า ___</span>
+      </div>
+      <input class="fill-input" id="fill-3" type="text" placeholder="พิมพ์คำตอบ...">
+      <div class="fill-answer" id="fill-ans-3">✅ เฉลย: <strong>เทสโทสเตอโรน (Testosterone)</strong> — กระตุ้นการพัฒนาลักษณะเพศชาย เช่น เสียงแตก มีหนวด กล้ามเนื้อใหญ่ขึ้น</div>
+    </div>
+
+    <div class="q-card" id="qcard-f4">
+      <div class="q-header">
+        <span class="q-num green">4</span>
+        <span class="q-text">ทารกในครรภ์ได้รับสารอาหารและออกซิเจนผ่านทาง ___</span>
+      </div>
+      <input class="fill-input" id="fill-4" type="text" placeholder="พิมพ์คำตอบ...">
+      <div class="fill-answer" id="fill-ans-4">✅ เฉลย: <strong>รก (Placenta)</strong> — รกเชื่อมกับทารกผ่านสายสะดือ (Umbilical cord) เป็นอวัยวะชั่วคราวที่เกิดขึ้นเฉพาะช่วงตั้งครรภ์</div>
+    </div>
+  </div>
+
+  <!-- Diagram -->
+  <div class="diagram">
+    <h3>📊 สรุปโครงสร้างระบบสืบพันธุ์</h3>
+    <div class="diagram-grid">
+      <div class="diagram-col male">
+        <h4>🔵 เพศชาย</h4>
+        <div class="diagram-row"><span>▸</span><span>อัณฑะ → ผลิตอสุจิ + Testosterone</span></div>
+        <div class="diagram-row"><span>▸</span><span>ท่อนำอสุจิ → ลำเลียงอสุจิ</span></div>
+        <div class="diagram-row"><span>▸</span><span>ต่อมลูกหมาก → สร้างน้ำเลี้ยงอสุจิ</span></div>
+        <div class="diagram-row"><span>▸</span><span>องคชาต → นำอสุจิออกจากร่างกาย</span></div>
+      </div>
+      <div class="diagram-col female">
+        <h4>🔴 เพศหญิง</h4>
+        <div class="diagram-row"><span>▸</span><span>รังไข่ → ผลิตไข่ + Estrogen</span></div>
+        <div class="diagram-row"><span>▸</span><span>ท่อนำไข่ → ลำเลียงไข่ / ปฏิสนธิ</span></div>
+        <div class="diagram-row"><span>▸</span><span>มดลูก → เจริญเติบโตของทารก</span></div>
+        <div class="diagram-row"><span>▸</span><span>ช่องคลอด → คลอดทารก</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="btn-row">
+    <button class="btn-submit" id="btn-submit" onclick="submitQuiz()">✅ ส่งคำตอบ</button>
+    <button class="btn-reset" id="btn-reset" onclick="resetQuiz()">🔄 ทำใหม่อีกครั้ง</button>
+  </div>
+
+  <div class="footer">วิทย์พลังสิบ ม.2 · ระบบสืบพันธุ์ · Biology</div>
+</div>
+
+<script>
+  // State
+  const answers = {};      // qId -> selected index (for MC) or 'true'/'false' (for TF)
+  const correctMC = {1:1, 2:2, 3:2, 4:1, 5:2, 6:2, 7:2, 8:2};
+  const correctTF = {9:true, 10:true};
+  let submitted = false;
+  const totalScored = 10;  // MC + TF only
+
+  // Tab switching
+  function switchTab(id, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('sec-' + id).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // Update progress bar
+  function updateProgress() {
+    const answered = Object.keys(answers).length;
+    document.getElementById('progress-text').textContent = `ตอบแล้ว ${answered} / ${totalScored} ข้อ`;
+    document.getElementById('progress-bar').style.width = (answered / totalScored * 100) + '%';
+  }
+
+  // Select MC answer
+  function selectMC(qId, optIdx, correctIdx) {
+    if (submitted) return;
+    answers[qId] = optIdx;
+    const card = document.getElementById('qcard-' + qId);
+    card.querySelectorAll('.opt-btn').forEach((btn, i) => {
+      btn.classList.toggle('selected', i === optIdx);
+    });
+    updateProgress();
+  }
+
+  // Select TF answer
+  function selectTF(qId, val, correct) {
+    if (submitted) return;
+    answers[qId] = val === 'true';
+    const card = document.getElementById('qcard-' + qId);
+    card.querySelectorAll('.tf-btn').forEach(btn => {
+      btn.classList.toggle('selected', btn.textContent.includes(val === 'true' ? 'ถูก' : 'ผิด'));
+    });
+    updateProgress();
+  }
+
+  // Submit
+  function submitQuiz() {
+    submitted = true;
+    let score = 0;
+
+    // Grade MC
+    for (let qId = 1; qId <= 8; qId++) {
+      const card = document.getElementById('qcard-' + qId);
+      const userAns = answers[qId];
+      const correct = correctMC[qId];
+      const isCorrect = userAns === correct;
+      if (isCorrect) score++;
+
+      card.querySelectorAll('.opt-btn').forEach((btn, i) => {
+        btn.disabled = true;
+        btn.classList.remove('selected');
+        if (i === correct) btn.classList.add('correct-ans');
+        if (i === userAns && !isCorrect) btn.classList.add('wrong-ans');
+      });
+
+      card.classList.add(isCorrect ? 'correct' : (userAns !== undefined ? 'wrong' : ''));
+      document.getElementById('exp-' + qId).classList.add('show');
+    }
+
+    // Grade TF
+    for (let qId = 9; qId <= 10; qId++) {
+      const card = document.getElementById('qcard-' + qId);
+      const userAns = answers[qId];
+      const correct = correctTF[qId];
+      const isCorrect = userAns === correct;
+      if (isCorrect) score++;
+
+      card.querySelectorAll('.tf-btn').forEach(btn => {
+        btn.disabled = true;
+        const isTrueBtn = btn.textContent.includes('ถูก');
+        const val = isTrueBtn;
+        btn.classList.remove('selected');
+        if (val === correct) btn.classList.add('correct-ans');
+        if (val === userAns && !isCorrect) btn.classList.add('wrong-ans');
+      });
+
+      card.classList.add(isCorrect ? 'correct' : (userAns !== undefined ? 'wrong' : ''));
+      document.getElementById('exp-' + qId).classList.add('show');
+    }
+
+    // Show fill answers
+    for (let i = 1; i <= 4; i++) {
+      document.getElementById('fill-' + i).disabled = true;
+      document.getElementById('fill-ans-' + i).classList.add('show');
+    }
+
+    // Show score banner
+    const pct = score / totalScored;
+    const color = pct >= 0.8 ? '#22c55e' : pct >= 0.6 ? '#f59e0b' : '#ef4444';
+    const msgs = [
+      [0.9, 'ยอดเยี่ยมมาก! 🏆'], [0.8, 'เก่งมาก! 🌟'],
+      [0.7, 'ดีมาก! 👍'], [0.6, 'ผ่านได้! 📚'], [0, 'ลองทำใหม่อีกครั้งนะ 💪']
+    ];
+    const msg = msgs.find(([t]) => pct >= t)[1];
+
+    const banner = document.getElementById('score-banner');
+    banner.style.border = `2px solid ${color}`;
+    banner.style.background = `rgba(255,255,255,0.04)`;
+    document.getElementById('score-num').textContent = `${score}/${totalScored}`;
+    document.getElementById('score-num').style.color = color;
+    document.getElementById('score-msg').textContent = msg;
+    document.getElementById('score-sub').textContent = `คะแนน ${Math.round(pct*100)}% · ตอบถูก ${score} ข้อ จาก ${totalScored} ข้อ (เฉพาะปรนัย + ถูก/ผิด)`;
+    document.getElementById('score-bar').style.background = `linear-gradient(90deg, ${color}, ${color}aa)`;
+    banner.classList.add('show');
+
+    setTimeout(() => {
+      document.getElementById('score-bar').style.width = (pct * 100) + '%';
+    }, 100);
+
+    document.getElementById('btn-submit').style.display = 'none';
+    document.getElementById('btn-reset').style.display = 'inline-block';
+
+    banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Reset
+  function resetQuiz() {
+    location.reload();
+  }
+</script>
+</body>
+</html>
